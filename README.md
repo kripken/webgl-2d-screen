@@ -9,3 +9,12 @@ https://github.com/jrmuizel/full-scene-rasterizer/blob/master/library-canvas.js
 
 License: MIT
 
+Usage
+-----
+
+Just run Web2DScreen on your canvas,
+
+  var wrappedCanvas = WebGL2DScreen(canvas);
+
+and use the wrapped canvas normally.
+
