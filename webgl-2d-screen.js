@@ -27,8 +27,7 @@ function WebGL2DScreen(canvas) {
       uniform sampler2D texSampler;                           \n\
       varying vec2 texCoord;                                  \n\
       void main(void) {                                       \n\
-        /* the rasterizer writes out data in bgra format */   \n\
-        gl_FragColor = texture2D(texSampler, texCoord).bgra;  \n\
+        gl_FragColor = texture2D(texSampler, texCoord).rgba;  \n\
       }                                                       \n';
 
     var texarray, program;
