@@ -2,17 +2,20 @@ function WebGL2DScreen(canvas) {
   var gl = null;
 
   var oldGetContext = (function(func) {
-    return function(type) {
+    return function() {
       gl = null;
-      return func.call(canvas, type);
+      return func.apply(canvas, arguments);
     };
   })(canvas.getContext);
 
   canvas.getContext = function(type) {
     if (type !== '2d') return oldGetContext(type);
 
-    gl = oldGetContext("webgl") || oldGetContext("experimental-webgl");
+    var attributes = { depth: false, stencil:false };
+    gl = oldGetContext('webgl', attributes) || oldGetContext('experimental-webgl', attributes);
     if (!gl) return oldGetContext('2d');
+
+    gl.depthMask(false);
 
     var vertexShaderString = 
     'attribute vec2 vertexPosition;                                \n\
@@ -50,9 +53,9 @@ function WebGL2DScreen(canvas) {
     gl.useProgram(program);
     if (gl.getError() !== gl.NO_ERROR) return oldGetContext('2d');
 
-    var vertexPositionAttrLoc = gl.getAttribLocation(program, "vertexPosition");
+    var vertexPositionAttrLoc = gl.getAttribLocation(program, 'vertexPosition');
     gl.enableVertexAttribArray(vertexPositionAttrLoc);
-    var texSamplerLoc = gl.getUniformLocation(program, "texSampler");
+    var texSamplerLoc = gl.getUniformLocation(program, 'texSampler');
     gl.uniform1i(texSamplerLoc, texUnit);
 
     var vertexPositionBuffer = gl.createBuffer();
@@ -111,8 +114,6 @@ function WebGL2DScreen(canvas) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
     };
