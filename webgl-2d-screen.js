@@ -11,7 +11,7 @@ function WebGL2DScreen(canvas) {
   canvas.getContext = function(type) {
     if (type !== '2d') return oldGetContext(type);
 
-    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    gl = oldGetContext("webgl") || oldGetContext("experimental-webgl");
     if (!gl) return oldGetContext('2d');
 
     var vertexShaderString = 
@@ -80,23 +80,38 @@ function WebGL2DScreen(canvas) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.bindTexture(gl.TEXTURE_2D, null);
-  };
+    var image = null;
+    return {
+      createImageData: function(w, h) {
+        if (w !== canvas.width || h !== canvas.height) {
+          throw 'bad inputs to createImageData';
+        }
+        if (image && image.width === canvas.width && image.height == canvas.height) return image;
+        return image = {
+          width: w,
+          height: h,
+          data: new Uint8Array(w*h*4)
+        };
+      },
+      getImageData: function(x, y, w, h) {
+        if (x !== 0 || y !== 0 || w !== canvas.width || h !== canvas.height) {
+          throw 'bad inputs to getImageData';
+        }
+        return this.createImageData(w, h);
+      },
+      putImageData: function(image, x, y) {
+        if (x !== 0 || y !== 0) {
+          throw 'bad inputs to putImageData';
+        }
+        gl.activeTexture(gl.TEXTURE0); // so we're being explicit with texture units. But here, texUnit is set to 0 so this is just pedantic.
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
 
-  var oldPutImageData = (function(func) {
-    return function() {
-      return func.apply(canvas, arguments);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
     };
-  })(canvas.putImageData);
-
-  canvas.putImageData = function(pixels, width, height) {
-    if (!gl) return oldPutImageData(pixels, width, height);
-    gl.activeTexture(gl.TEXTURE0); // so we're being explicit with texture units. But here, texUnit is set to 0 so this is just pedantic.
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
 
   return canvas;
