@@ -14,7 +14,15 @@ Usage
 
 Just run Web2DScreen on your canvas,
 
-  var wrappedCanvas = WebGL2DScreen(canvas);
+        var wrappedCanvas = WebGL2DScreen(canvas);
 
-and use the wrapped canvas normally.
+and use the wrapped canvas normally. For example, in an Emscripten project you might have something like
+
+        var canvas = document.getElementById('canvas');
+
+in your HTML (this is where it finds the canvas HTML element, and then points to it from where Emscripten-generated code will see it), then you would just add
+
+        canvas = WebGL2DScreen(canvas);
+
+right after that line.
 
